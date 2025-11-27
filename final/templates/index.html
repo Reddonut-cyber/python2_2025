@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PDF Typing Tutor</title>
+    <style>
+        :root {
+            --bg-color: #323437;
+            --text-color: #646669;
+            --highlight-color: #e2b714;
+            --box-bg: #2c2e31;
+            --white: #d1d0c5;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max_width: 800px;
+        }
+        
+        /* Upload Section */
+        .upload-box {
+            background-color: var(--box-bg);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        /* Library Section */
+        h2 { color: var(--white); border-bottom: 2px solid var(--highlight-color); padding-bottom: 10px; }
+        
+        .file-list {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .file-card {
+            background-color: var(--box-bg);
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .file-card:hover {
+            border-color: var(--highlight-color);
+            transform: translateX(5px);
+        }
+        
+        .file-info h3 { margin: 0 0 5px 0; color: var(--white); font-size: 1.1rem; }
+        .file-info p { margin: 0; font-size: 0.9rem; }
+        
+        .btn-start {
+            background-color: var(--highlight-color);
+            color: var(--bg-color);
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .btn-start:hover { opacity: 0.9; }
+
+        /* Upload Style */
+        input[type="file"] { display: none; }
+        .upload-btn {
+            border: 2px dashed var(--text-color);
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .upload-btn:hover { border-color: var(--highlight-color); color: var(--white); }
+        button[type="submit"] {
+            background: var(--highlight-color); border: none; padding: 10px 30px; 
+            border-radius: 50px; font-weight: bold; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="container">
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div style="background: #ca4754; color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+            ⚠️ {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="upload-box">
+        <h1 style="color: var(--white); margin-top: 0;">Upload New PDF 📄</h1>
+        <form method="post" enctype="multipart/form-data">
+            <label for="file-upload" class="upload-btn">
+                <span id="file-name">Click to choose PDF</span>
+            </label>
+            <input id="file-upload" type="file" name="file" accept=".pdf" required onchange="document.getElementById('file-name').innerText = this.files[0].name">
+            <br>
+            <button type="submit">Add to Library</button>
+        </form>
+    </div>
+
+    <h2>My Library 📚</h2>
+    <div class="file-list">
+        {% if files %}
+            {% for filename, info in files.items() %}
+            <div class="file-card">
+                <div class="file-info">
+                    <h3>{{ filename }}</h3>
+                    {% set percent = 0 %}
+                    {% if info.total_lines > 0 %}
+                        {% set percent = (info.current_index / info.total_lines * 100) | int %}
+                    {% endif %}
+                    <p>Progress: {{ percent }}% ({{ info.current_index }}/{{ info.total_lines }})</p>
+                    <p>Avg Accuracy: {{ "%.2f"|format(info.score) }}%</p>
+                </div>
+                
+                <a href="{{ url_for('select_file', filename=filename) }}" class="btn-start">
+                    {% if info.current_index > 0 %} Resume ▶ {% else %} Start ▶ {% endif %}
+                </a>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="text-align: center; color: #666;">No files yet. Upload one above!</p>
+        {% endif %}
+    </div>
+</div>
+
+</body>
+</html>

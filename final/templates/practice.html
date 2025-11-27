@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Practice Mode</title>
+    <style>
+        body {
+            background-color: #323437;
+            color: #646669;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify_content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            width: 80%;
+            max_width: 900px;
+        }
+        .stats {
+            color: #e2b714;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        #display-area {
+            font-size: 2rem;
+            line-height: 1.5;
+            margin-bottom: 30px;
+            user-select: none;
+            position: relative;
+            word-wrap: break-word; /* ป้องกันข้อความล้นจอ */
+        }
+        #hidden-input {
+            opacity: 0;
+            position: absolute;
+            z-index: -1;
+        }
+
+        /* Classes */
+        .correct { color: #d1d0c5 !important; } /* !important เพื่อบังคับให้ใช้สีนี้ */
+        .incorrect { color: #ca4754 !important; text-decoration: underline; }
+        .current { border-left: 2px solid #e2b714; animation: blink 1s infinite; }
+
+        @keyframes blink { 50% { border-color: transparent; } }
+
+        .btn {
+            background-color: #e2b714;
+            color: #323437;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .btn-stop { background-color: #ca4754; color: white; margin-left: 10px;}
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="stats">
+            <span>Progress: {{ progress }}</span>
+            <span>Avg Acc: {{ current_score }}%</span>
+        </div>
+
+        <div id="display-area" onclick="document.getElementById('hidden-input').focus()"></div>
+
+        <form method="post" id="typing-form">
+            <input type="text" id="hidden-input" name="user_input" autocomplete="off" autofocus>
+            <div style="margin-top: 20px; text-align: center;">
+                <button type="submit" name="action" value="submit" class="btn">Next Line ⏎</button>
+                <button type="submit" name="action" value="stop" class="btn btn-stop">Stop / Pause ⏸</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // --- ส่วนที่แก้ 1: ใช้ tojson เพื่อจัดการตัวอักษรพิเศษเช่น < > " ' ---
+        const targetText = {{ text | tojson }}; 
+        
+        const displayArea = document.getElementById('display-area');
+        const inputField = document.getElementById('hidden-input');
+
+        // สร้าง Span
+        targetText.split('').forEach(char => {
+            const span = document.createElement('span');
+            span.innerText = char;
+            displayArea.appendChild(span);
+        });
+
+        // ฟังก์ชันตรวจสอบ (Logic ใหม่)
+        function updateDisplay() {
+            const typed = inputField.value;
+            const spans = displayArea.querySelectorAll('span');
+
+            spans.forEach((span, index) => {
+                const char = typed[index];
+                
+                // ล้างค่าเก่าออกให้หมดก่อน
+                span.classList.remove('correct', 'incorrect', 'current');
+                span.style.color = ''; // สำคัญ: ล้างสีเทาที่เคยใส่ไว้ออก
+
+                // Logic การใส่สี
+                if (index === typed.length) {
+                    span.classList.add('current'); // Cursor
+                }
+
+                if (char == null) {
+                    // ยังไม่ได้พิมพ์ -> เป็นสีเทา
+                    span.style.color = '#646669'; 
+                } else if (char === targetText[index]) {
+                    // ถูก -> สีขาว
+                    span.classList.add('correct');
+                } else {
+                    // ผิด -> สีแดง
+                    span.classList.add('incorrect');
+                }
+            });
+        }
+
+        inputField.addEventListener('input', updateDisplay);
+        
+        // เรียกใช้ครั้งแรกเพื่อเซ็ต Cursor
+        updateDisplay();
+
+        // Focus ตลอดเวลา
+        document.body.addEventListener('click', () => inputField.focus());
+        inputField.focus();
+    </script>
+</body>
+</html>

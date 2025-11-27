@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Practice Summary</title>
+    <style>
+        :root {
+            --bg-color: #323437;
+            --card-bg: #2c2e31;
+            --text-color: #646669;
+            --highlight: #e2b714;
+            --white: #d1d0c5;
+            --red: #ca4754;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--white);
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            width: 90%;
+            max_width: 800px;
+            text-align: center;
+        }
+        h1 { color: var(--highlight); margin-bottom: 30px; font-size: 2.5rem; }
+
+        /* Score Cards Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border: 1px solid transparent;
+        }
+        .stat-card:hover { border-color: var(--highlight); }
+        .stat-value { font-size: 2.5rem; font-weight: bold; color: var(--highlight); }
+        .stat-label { color: var(--text-color); margin-top: 5px; }
+
+        /* Mistakes Table */
+        .mistakes-box {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { text-align: left; color: var(--text-color); border-bottom: 2px solid #444; padding: 10px; }
+        td { border-bottom: 1px solid #444; padding: 15px 10px; font-size: 1.1rem; }
+        .key-box { 
+            background: #444; padding: 5px 10px; border-radius: 5px; 
+            font-family: monospace; color: var(--white);
+        }
+        .bad { color: var(--red); }
+
+        /* Buttons */
+        .btn-group { display: flex; gap: 20px; justify-content: center; }
+        .btn {
+            text-decoration: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: transform 0.2s;
+        }
+        .btn-primary { background: var(--highlight); color: var(--bg-color); }
+        .btn-secondary { background: transparent; border: 2px solid var(--text-color); color: var(--white); }
+        .btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Session Complete! 🎉</h1>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ score }}%</div>
+            <div class="stat-label">Accuracy</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ typed_lines }} / {{ total_lines }}</div>
+            <div class="stat-label">Lines Completed</div>
+        </div>
+    </div>
+
+    <div class="mistakes-box">
+        <h2 style="color: var(--white); margin: 0;">Top Mistakes ⚠️</h2>
+        {% if mistakes %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Expected</th>
+                        <th>You Typed</th>
+                        <th>Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in mistakes %}
+                    <tr>
+                        <td><span class="key-box">{{ m.expected }}</span></td>
+                        <td><span class="key-box bad">{{ m.typed }}</span></td>
+                        <td>{{ m.count }} times</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p style="margin-top: 30px; font-size: 1.2rem; color: var(--highlight);">
+                ✨ Perfect! No mistakes found. ✨
+            </p>
+        {% endif %}
+    </div>
+
+    <div class="btn-group">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">🏠 Back to Library</a>
+        <a href="{{ url_for('practice') }}" class="btn btn-primary">Resume Practice ▶</a>
+    </div>
+</div>
+
+</body>
+</html>
