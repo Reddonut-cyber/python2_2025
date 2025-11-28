@@ -11,7 +11,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)# สร้างโฟลเดอร�
 db = DataManager()#เรียก db.json มาใช้
 
 @app.route('/', methods=['GET', 'POST'])
-def index():
+def index() -> str:
     # อัพโหลดไฟล์
     if request.method == 'POST':
         # ตรวจสอบว่ามีไฟล์ถูกส่งมาหรือไม่
@@ -32,14 +32,14 @@ def index():
                     if lines:
                         db.add_file(file.filename, len(lines))
                     else:
-                        print("Warning: PDF อ่านไม่ออก หรือไม่มีข้อความ")
+                        print("Warning: PDF cannot be read or contains no text")
             
             return redirect(url_for('index'))
 
     files = db.get_all_files()# ดึงรายชื่อไฟล์ทั้งหมดจาก DB
     return render_template('index.html', files=files)
 @app.route('/select/<path:filename>')
-def select_file(filename):
+def select_file(filename: str) -> str:
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     
     # ล้าง Session เก่า
@@ -75,7 +75,7 @@ def select_file(filename):
     return redirect(url_for('practice'))
 
 @app.route('/practice', methods=['GET', 'POST'])
-def practice():
+def practice() -> str:
     # ดึงข้อมูลจาก Session
     lines = session.get('lines', [])
     current_index = session.get('current_index', 0)
@@ -128,7 +128,7 @@ def practice():
                            current_score=f"{avg_score:.2f}")
 
 @app.route('/summary')
-def summary():
+def summary() -> str:
     lines = session.get('lines', [])
     current_index = session.get('current_index', 0)
     total_score = session.get('total_score', 0)

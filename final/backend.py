@@ -4,11 +4,12 @@ from abc import ABC, abstractmethod
 import pdfplumber  # <--- เปลี่ยนจาก pypdf เป็นตัวนี้
 from functools import wraps
 import json
+from typing import Any
 
 # --- Decorator (เหมือนเดิม) ---
-def time_logger(func):
+def time_logger(func: callable) -> callable:
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         start = time.time()
         result = func(*args, **kwargs)
         end = time.time()
@@ -19,25 +20,25 @@ def time_logger(func):
 # --- Base Class (เหมือนเดิม) ---
 class DocumentReader(ABC):
     @abstractmethod
-    def extract_text(self):
+    def extract_text(self) -> bool:
         pass
 
 # --- PDFProcessor (แก้ใหม่ใช้ pdfplumber) ---
 class PDFProcessor(DocumentReader):
-    def __init__(self, file_path):
+    def __init__(self, file_path) -> None:
         self.file_path = file_path
         self._content = []
 
-    def __enter__(self):
+    def __enter__(self) -> 'PDFProcessor':
         if not os.path.exists(self.file_path):
-            raise FileNotFoundError(f"ไม่พบไฟล์ที่: {self.file_path}")
+            raise FileNotFoundError(f"File not found: {self.file_path}")
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         pass
 
     @time_logger
-    def extract_text(self):
+    def extract_text(self) -> bool:
         try:
             full_text = ""
             # ใช้ pdfplumber เปิดไฟล์
@@ -63,22 +64,22 @@ class PDFProcessor(DocumentReader):
             print(f"Error reading PDF: {e}")
             return False
 
-    def get_lines(self):
+    def get_lines(self) -> list[str]:
         return self._content
 
 # --- ส่วนอื่นๆ (เหมือนเดิม) ---
-def calculate_accuracy(original, typed):
+def calculate_accuracy(original: str, typed: str) -> float:
     if not original: return 0
     matches = sum([1 for o, t in zip(original, typed) if o == t])
     return (matches / len(original)) * 100
 
 class DataManager:
     # ... (โค้ด DataManager ส่วนเดิม ไม่ต้องแก้) ...
-    def __init__(self, db_file='db.json'):
+    def __init__(self, db_file: str ='db.json') -> None:
         self.db_file = db_file
         self.data = self._load_data()
 
-    def _load_data(self):
+    def _load_data(self) -> dict:
         if not os.path.exists(self.db_file):
             return {}
         try:
@@ -87,11 +88,11 @@ class DataManager:
         except:
             return {}
 
-    def save_data(self):
+    def save_data(self) -> None:
         with open(self.db_file, 'w', encoding='utf-8') as f:
             json.dump(self.data, f, ensure_ascii=False, indent=4)
 
-    def add_file(self, filename: str, total_lines):
+    def add_file(self, filename: str, total_lines: int) -> None:
         if filename not in self.data:
             self.data[filename] = {
                 'current_index': 0,
@@ -101,15 +102,21 @@ class DataManager:
             }
             self.save_data()
 
-    def update_progress(self, filename, index, score, mistakes):
+    def update_progress(
+        self, 
+        filename: str, 
+        index: int, 
+        score: float, 
+        mistakes: list[str]
+        ) -> None:
         if filename in self.data:
             self.data[filename]['current_index'] = index
             self.data[filename]['score'] = score
             self.data[filename]['mistakes'] = mistakes
             self.save_data()
             
-    def get_file_info(self, filename):
+    def get_file_info(self, filename: str) -> dict:
         return self.data.get(filename, {})
         
-    def get_all_files(self):
+    def get_all_files(self) -> dict:
         return self.data
